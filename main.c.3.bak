@@ -1,0 +1,144 @@
+#define GLEW_STATIC
+#include<stdio.h>
+#include<GL/glew.h>
+#include<GLFW/glfw3.h>
+#include<stdbool.h>
+#include<string.h>
+
+GLint uniColor;
+void key_callback();
+
+int main(){ 
+   if(!glfwInit()){
+      printf("Failed to initialize glfw!\n");
+      return 1;
+   }else{
+      printf("Successfully initialized glfw!\n");
+   }
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
+   GLFWwindow* window = glfwCreateWindow(1054, 1057, "Title", NULL, NULL);
+   glfwSetKeyCallback(window, key_callback);
+   if(!window){
+      printf("Window creation failed!\n");
+      return 1;
+   }else{
+      printf("Window created successfully!\n");
+   }
+   glfwMakeContextCurrent(window);
+   glewExperimental = GL_TRUE;
+   if(glewInit() != GLEW_OK){
+      printf("Failed to initialize glew!\n");
+      return 1;
+   }else{
+      printf("Successfully initialized glew!\n");
+   } 
+   glfwSwapInterval(1);
+   float Vertices[] = {
+     -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+      0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+     -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
+      0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f
+   };
+
+   GLuint indices[] = {
+      0, 1, 2,
+      2, 1, 3
+   };
+
+   float VerticesSquare[] = {
+      -0.5f, 0.5f, 0.0f,
+       0.5f, 0.5f, 0.0f,
+       0.5f, -0.5f, 0.0f,
+      -0.5f, -0.5f, 0.0f
+   };
+   printf("GLfloat variable called successfully\n"); 
+   GLuint ShaderProgram = glCreateProgram();
+   GLuint ShaderObjv = glCreateShader(GL_VERTEX_SHADER);
+   GLuint ShaderObjf = glCreateShader(GL_FRAGMENT_SHADER);
+   const GLchar* pvs[1];
+   const GLchar* pfs[1];
+   const char* pVertexShaderText = "#version 330\nlayout(location = 0) in vec3 Position;\nlayout(location = 1) in vec3 incolor;\nout vec3 outcolor;\nvoid main(){gl_Position = vec4(Position.x, Position.y, Position.z, 1.0);\noutcolor = incolor;}";
+   const char* pFragmentShaderText = "#version 330\nuniform vec3 color;\nin vec3 outcolor;\nout vec4 FragColor;\nvoid main(){FragColor = vec4(outcolor, 1.0f);}";
+   pvs[0] = pVertexShaderText;
+   pfs[0] = pFragmentShaderText;
+   GLint LenghtsVertex[1];
+   GLint LenghtsFragment[1];
+   LenghtsVertex[0] = strlen(pVertexShaderText);
+   LenghtsFragment[0] = strlen(pFragmentShaderText);
+   glShaderSource(ShaderObjv, 1, pvs, LenghtsVertex);
+   glShaderSource(ShaderObjf, 1, pfs, LenghtsFragment);
+   glCompileShader(ShaderObjv);
+   glCompileShader(ShaderObjf);
+   GLint successvs;
+   glGetShaderiv(ShaderObjv, GL_COMPILE_STATUS, &successvs);
+   if (!successvs) {
+       GLchar InfoLog1[1024];
+       glGetShaderInfoLog(ShaderObjv, sizeof(InfoLog1), NULL, InfoLog1);
+       fprintf(stderr, "Error compiling shader type %d: '%s'\n", GL_VERTEX_SHADER, InfoLog1);
+   }
+   GLint successfs;
+   glGetShaderiv(ShaderObjf, GL_COMPILE_STATUS, &successfs);
+   if (!successfs) {
+       GLchar InfoLog2[1024];
+       glGetShaderInfoLog(ShaderObjf, sizeof(InfoLog2), NULL, InfoLog2);
+       fprintf(stderr, "Error compiling shader type %d: '%s'\n", GL_FRAGMENT_SHADER, InfoLog2);
+   }
+   glAttachShader(ShaderProgram, ShaderObjv);
+   glAttachShader(ShaderProgram, ShaderObjf);
+   glLinkProgram(ShaderProgram);
+   glValidateProgram(ShaderProgram);
+   glUseProgram(ShaderProgram);
+   GLint uniColor = glGetUniformLocation(ShaderProgram, "color");
+   glUniform3f(uniColor, 1.0f, 0.0f, 0.0f);
+   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+   GLuint VBO;
+   GLuint VAO = 0;
+   GLuint EBO;
+   glGenBuffers(1, &VBO);
+   glGenVertexArrays(1, &VAO);
+   glGenBuffers(1, &EBO);
+   glBindBuffer(GL_ARRAY_BUFFER, VBO);
+   glBindVertexArray(VAO);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+   printf("Buffer created successfully\n");
+   glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+   printf("Buffer data set up successfully\n");
+   glEnableVertexAttribArray(0);
+   glEnableVertexAttribArray(1);
+   printf("Enabling buffer successfull\n");
+   glBindBuffer(GL_ARRAY_BUFFER, VBO);
+   printf("Binding buffer successfull\n");
+   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+   printf("Setting up VectexAttribPointer successfull\n");
+
+   while(!glfwWindowShouldClose(window)){
+      glfwPollEvents();  
+      glClear(GL_COLOR_BUFFER_BIT);
+      glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+      //glDrawArrays(GL_TRIANGLES, 0, 3); 
+      glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+      GLenum err;
+      if((err = glGetError()) != GL_NO_ERROR){
+         printf("OpenGL error: %d\n", err);
+      }
+      glfwSwapBuffers(window);
+   } 
+   return 0;
+}
+
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+   if(key == GLFW_KEY_R && action == GLFW_PRESS){
+      glUniform3f(uniColor, 1.0f, 0.0f, 0.0f);
+   }else if(key == GLFW_KEY_G && action == GLFW_PRESS){
+      glUniform3f(uniColor, 0.0f, 1.0f, 0.0f);
+   }else if(key == GLFW_KEY_B && action == GLFW_PRESS){
+      glUniform3f(uniColor, 0.0f, 0.0f, 1.0f);
+   }
+}

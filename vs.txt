@@ -1,0 +1,11 @@
+#version 330 core
+layout(location = 0) in vec3 Position;
+layout(location = 1) in vec3 incolor;
+layout(location = 2) in vec2 Tex;
+out vec3 outcolor;
+out vec2 texcoords;
+void main(){
+   gl_Position = vec4(Position.x, Position.y, Position.z, 1.0);
+   outcolor = incolor;
+   texcoords = Tex;
+}
